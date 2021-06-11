@@ -4,7 +4,13 @@
   (:require [clojure.string :as str]
             [clojure.java.shell :as shell]
             [codox.reader.clojure :as clj]
-            [codox.reader.plaintext :as text]))
+            [codox.reader.plaintext :as text]
+            [clojure.string :as str]
+            [clojure.tools.logging :as log]
+            [clojure.java.io :as io]
+            [clojure.edn :as edn]
+            [clojure.pprint :as pprint])
+  (:gen-class))
 
 (defn- writer [{:keys [writer]}]
   (let [writer-sym (or writer 'codox.writer.html/write-docs)
@@ -125,3 +131,49 @@
        (write-fn (assoc options
                         :namespaces namespaces
                         :documents  documents)))))
+
+(defn find-vals
+  [proj-file key-seq]
+  (let [pvec (vec proj-file)
+        key-set (set key-seq)
+        n-elems (count pvec)]
+    (loop [idx 0
+           retval {}]
+      (if (< idx n-elems)
+        (let [[idx retval]
+              (if (key-set (pvec idx))
+                [(inc idx) (assoc retval
+                                  (pvec idx)
+                                  (pvec (inc idx)))]
+                [idx retval])]
+          (recur (inc idx) retval))
+        retval))))
+
+(defn get-codox-options
+  [args]
+  (let [base-argmap (first args)]
+    (merge base-argmap
+           (cond
+             (.exists (io/file "deps.edn"))
+             (let [deps-edn (edn/read-string (slurp "deps.edn"))
+                   retval (->> (:arg-paths base-argmap)
+                               (map #(get-in deps-edn %))
+                               (apply merge))]
+               retval)
+             (.exists (io/file "project.clj"))
+             (let [proj-file (edn/read-string (slurp "project.clj"))
+                   proj-name (name (second proj-file))
+                   val-map (find-vals proj-file [:description :profiles])
+                   codox-section (get-in val-map [:profiles :codox :codox])]
+               (merge
+                {:name proj-name
+                 :description (:description val-map "")
+                 :version (nth proj-file 2)}
+                codox-section))))))
+
+(defn -main
+  [& args]
+  (let [codox-opts (get-codox-options args)]
+    (log/infof "Codox options:
+%s" (with-out-str (pprint/pprint codox-opts)))
+    (generate-docs codox-opts)))

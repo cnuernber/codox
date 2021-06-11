@@ -10,7 +10,8 @@ weavejester's codox and upgraded to use flexmark-java instead of pegdown."
                  [hiccup "1.0.5"]
                  ;;later version of jsoup used by flexmark
                  [enlive "1.1.6" :exclusions [org.jsoup/jsoup]]
-                 [com.vladsch.flexmark/flexmark-all "0.62.2"]]
+                 [com.vladsch.flexmark/flexmark-all "0.62.2"]
+                 [org.clojure/tools.logging "1.1.0"]]
   :java-source-paths ["java"]
   :profiles {:dev {:dependencies [[org.clojure/clojurescript "1.10.866"]]
                    :source-paths ["src" "test/src" "test"]}})
