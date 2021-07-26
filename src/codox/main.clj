@@ -73,10 +73,11 @@
         (update-in [:publics] add-var-defaults defaults))))
 
 (defn- ns-matches? [{ns-name :name} pattern]
-  (cond
-    (instance? java.util.regex.Pattern pattern) (re-find pattern (str ns-name))
-    (string? pattern) (= pattern (str ns-name))
-    (symbol? pattern) (= pattern (symbol ns-name))))
+  (when ns-name
+    (cond
+      (instance? java.util.regex.Pattern pattern) (re-find pattern (str ns-name))
+      (string? pattern) (= pattern (str ns-name))
+      (symbol? pattern) (= pattern (symbol ns-name)))))
 
 (defn- filter-namespaces [namespaces ns-filters]
   (if (and ns-filters (not= ns-filters :all))
