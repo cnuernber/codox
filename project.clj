@@ -1,4 +1,4 @@
-(defproject com.cnuernber/codox "1.00-SNAPSHOT"
+(defproject com.cnuernber/codox "1.000"
   :description "Generate documentation from Clojure source files - forked from
 weavejester's codox and upgraded to use flexmark-java instead of pegdown."
   :url "https://github.com/cnuernber/codox"
